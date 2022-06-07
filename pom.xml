@@ -33,11 +33,29 @@
       <artifactId>quarkus-operator-sdk-bundle-generator</artifactId>
       <version>4.0.0.RC</version>
     </dependency>
+<!--    <dependency>-->
+<!--      <groupId>io.quarkiverse.operatorsdk</groupId>-->
+<!--      <artifactId>quarkus-operator-sdk</artifactId>-->
+<!--      <version>4.0.0.RC</version>-->
+<!--    </dependency>-->
+
     <dependency>
-      <groupId>io.quarkiverse.operatorsdk</groupId>
-      <artifactId>quarkus-operator-sdk</artifactId>
-      <version>4.0.0.RC</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-container-image-jib</artifactId>
+    </dependency>
+
+    <!-- 正常这个引用不需要，不过在idea上有时候需要引用这个依赖才能编译通过 -->
+    <dependency>
+      <groupId>org.fusesource.jansi</groupId>
+      <artifactId>jansi</artifactId>
+      <version>1.18</version>
+      <scope>provided</scope>
+    </dependency>
+
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-arc</artifactId>

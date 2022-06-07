@@ -1,0 +1,22 @@
+apiVersion: com.pesco.operator/v1
+kind: HadoopConfig
+metadata:
+  name: hdfs-site
+  namespace: bigdata
+spec:
+  content: |-
+    <configuration>
+     <property>
+       <name>dfs.permissions.superusergroup</name>
+       <value>hdfs</value>
+     </property>
+     <property>
+      <name>dfs.replication</name>
+      <value>1</value>
+     </property>
+    </configuration>
+  type: xml
+  fileName: hdfs-site.xml
+  overwrites:
+    - name: dfs.replication
+      value: "2"
