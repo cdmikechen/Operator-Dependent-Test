@@ -76,6 +76,7 @@ public class HadoopConfigReconciler implements Reconciler<HadoopConfig>
         // 如果有异常，则更新状态信息
         LOGGER.errorv(e, "创建资源时候发生异常！{0}", e.getMessage());
         var fail = new HadoopConfigStatus();
+        fail.setSuccess(false);
         fail.setErrorMsg(ExceptionUtils.getMessage(e));
         fail.setStackTrace(ExceptionUtils.getStackFrames(e));
         hadoopConfig.setStatus(fail);

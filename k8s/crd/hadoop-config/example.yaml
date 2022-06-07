@@ -20,3 +20,58 @@ spec:
   overwrites:
     - name: dfs.replication
       value: "2"
+---
+apiVersion: com.pesco.operator/v1
+kind: HadoopConfig
+metadata:
+  name: core-site
+  namespace: bigdata
+spec:
+  content: |-
+    <configuration>
+     <property>
+      <name>fs.ofs.impl</name>
+      <value>org.apache.hadoop.fs.ozone.RootedOzoneFileSystem</value>
+    </property>
+    <property>
+      <name>fs.defaultFS</name>
+      <value>ofs://om-0.om.cjx.svc.cluster.local:9862</value>
+    </property>
+
+     <property>
+       <name>hadoop.tmp.dir</name>
+       <value>/tmp/hadoop</value>
+     </property>
+
+     <property>
+       <name>fs.trash.interval</name>
+       <value>1440</value>
+     </property>
+
+     <property>
+       <name>hadoop.proxyuser.hdfs.hosts</name>
+       <value>*</value>
+     </property>
+
+     <property>
+        <name>hadoop.proxyuser.hdfs.groups</name>
+        <value>*</value>
+     </property>
+
+    <property>
+        <name>hadoop.proxyuser.knox.groups</name>
+        <value>users</value>
+    </property>
+    <property>
+        <name>hadoop.proxyuser.knox.hosts</name>
+        <value>*</value>
+    </property>
+
+    <property>
+        <name>fs.alluxio.impl</name>
+        <value>alluxio.hadoop.FileSystem</value>
+      </property>
+
+    </configuration>
+  type: xml
+  fileName: core-site.xml

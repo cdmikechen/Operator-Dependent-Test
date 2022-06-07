@@ -55,10 +55,10 @@ public class HadoopConfigConfigMapResource extends KubernetesDependentResource<C
     }
 
     @Override
-    protected ConfigMap desired(HadoopConfig pipeline, Context<HadoopConfig> context) {
-        final var spec = pipeline.getSpec();
-        final var namespace = pipeline.getMetadata().getNamespace();
-        final var name = pipeline.getMetadata().getName();
+    protected ConfigMap desired(HadoopConfig primary, Context<HadoopConfig> context) {
+        final var spec = primary.getSpec();
+        final var namespace = primary.getMetadata().getNamespace();
+        final var name = primary.getMetadata().getName();
         final var labels = K8sUtil.getContextLabels(context);
 
         var configmapBuilder = new ConfigMapBuilder()
@@ -138,7 +138,7 @@ public class HadoopConfigConfigMapResource extends KubernetesDependentResource<C
                             blankTextNodes.item(i).getParentNode().removeChild(blankTextNodes.item(i));
                         }
 
-                        // 最后输出一下xml
+                        // 最后格式化输出一下xml
                         TransformerFactory tf = TransformerFactory.newInstance();
                         Transformer transformer = tf.newTransformer();
                         transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");

@@ -30,6 +30,7 @@ public interface KubeConstants {
 
     /* 资源名称信息 */
     String HADOOP_CONFIG_INSTANCE_NAME = "hadoop-config";
+    String HADOOP_CONFIG_FOLDER_INSTANCE_NAME = "hadoop-config-folder";
 
     String QUARKUS_APPLICATION_PROPERTIES = "application.properties";
     String QUARKUS_DEFAULT_CLUSTER_ROLE = "quarkus-configmap-role";

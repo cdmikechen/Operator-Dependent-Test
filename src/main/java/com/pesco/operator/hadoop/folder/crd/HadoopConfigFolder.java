@@ -1,4 +1,4 @@
-package com.pesco.operator.hadoop.folder;
+package com.pesco.operator.hadoop.folder.crd;
 
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;

@@ -1,0 +1,10 @@
+apiVersion: com.pesco.operator/v1
+kind: HadoopConfigFolder
+metadata:
+  name: ranger-config
+  namespace: bigdata
+spec:
+  config:
+    - name: core-site
+    - namespace: bigdata
+      name: hdfs-site
