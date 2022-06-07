@@ -20,7 +20,10 @@ spec:
           spec:
             properties:
               config:
+                description: 配置文件列表
                 items:
+                  required:
+                    - name
                   properties:
                     name:
                       type: string
@@ -33,10 +36,13 @@ spec:
             properties:
               success:
                 type: boolean
+                description: 是否成功
               errorMsg:
                 type: string
+                description: 异常信息
               resourceName:
                 type: string
+                description: 实际的配置文件资源名称
               fileList:
                 items:
                   type: string
@@ -45,6 +51,7 @@ spec:
                 items:
                   type: string
                 type: array
+                description: 错误堆栈
             type: object
         type: object
     served: true
