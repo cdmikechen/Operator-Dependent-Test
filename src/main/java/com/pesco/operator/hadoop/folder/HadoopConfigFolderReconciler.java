@@ -44,7 +44,7 @@ public class HadoopConfigFolderReconciler implements Reconciler<HadoopConfigFold
         final var labels = Map.of(APP_LABEL, name,
                 INSTANCE_LABEL, HADOOP_CONFIG_FOLDER_INSTANCE_NAME,
                 VERSION_LABEL, DEFAULT_APPLICATION_VERSION,
-                COMPONMENT_LABEL, OPERATOR_NAME);
+                COMPONENT_LABEL, OPERATOR_NAME);
         context.managedDependentResourceContext().put(LABELS_CONTEXT_KEY, labels);
     }
 

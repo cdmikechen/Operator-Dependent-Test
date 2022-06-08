@@ -69,7 +69,7 @@ public class HadoopConfigConfigMapResource extends KubernetesDependentResource<C
         ConfigMap configMap = configmapBuilder.addToData(spec.getFileName(), content).build();
         LOGGER.infov("创建/修改 configmap {0}/{1}", namespace, configMap.getMetadata().getName());
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debugv("显示 {0} yaml = \n{1}", Service.class.getName(), YamlUtil.toPrettyYaml(configMap));
+            LOGGER.debugv("显示 {0} yaml = \n{1}", ConfigMap.class.getName(), YamlUtil.toPrettyYaml(configMap));
         }
         return configMap;
     }

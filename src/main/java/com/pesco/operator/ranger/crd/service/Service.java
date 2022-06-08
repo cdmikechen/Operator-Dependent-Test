@@ -1,5 +1,7 @@
 package com.pesco.operator.ranger.crd.service;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 import java.util.Map;
@@ -14,6 +16,7 @@ import java.util.Map;
  * @Version V1.0
  */
 @RegisterForReflection
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Service {
 
     private String name;
@@ -22,6 +25,7 @@ public class Service {
 
     private String description;
 
+    @JsonProperty("isEnabled")
     private Boolean isEnabled = true;
 
     private String type;
@@ -52,11 +56,11 @@ public class Service {
         this.description = description;
     }
 
-    public Boolean getEnabled() {
+    public Boolean getIsEnabled() {
         return isEnabled;
     }
 
-    public void setEnabled(Boolean enabled) {
+    public void setIsEnabled(Boolean enabled) {
         isEnabled = enabled;
     }
 

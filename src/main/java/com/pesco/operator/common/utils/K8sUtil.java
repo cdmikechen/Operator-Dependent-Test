@@ -1,18 +1,21 @@
 package com.pesco.operator.common.utils;
 
+import com.pesco.operator.common.crd.resource.Resource;
 import com.pesco.operator.common.exception.ConfigmapException;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.javaoperatorsdk.operator.api.reconciler.Context;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static com.pesco.operator.common.KubeConstants.*;
 
@@ -97,5 +100,41 @@ public class K8sUtil {
      */
     public static String hadoopConfigmap(String name) {
         return String.format("%s-configmap", name);
+    }
+
+    /**
+     * 将文本转化为properties
+     */
+    public static Properties parsePropertiesString(String s) throws IOException {
+        final Properties p = new Properties();
+        try (StringReader sr = new StringReader(s)) {
+            p.load(sr);
+        }
+        return p;
+    }
+
+    /**
+     * 将文件内容转化为properties
+     */
+    public static Properties parsePropertiesFile(String file) throws IOException {
+        final Properties p = new Properties();
+        try (InputStream is = K8sUtil.class.getResourceAsStream(file)) {
+            p.load(is);
+        }
+        return p;
+    }
+
+    /**
+     * 获取资源的配置信息
+     */
+    public static Map<String, Quantity> getResource(Resource resource) {
+        var resources = new HashMap<String, Quantity>();
+        if (StringUtils.isNotBlank(resource.getCpu())) {
+            resources.put("cpu", Quantity.parse(resource.getCpu()));
+        }
+        if (StringUtils.isNotBlank(resource.getMemory())) {
+            resources.put("memory", Quantity.parse(resource.getMemory()));
+        }
+        return resources;
     }
 }

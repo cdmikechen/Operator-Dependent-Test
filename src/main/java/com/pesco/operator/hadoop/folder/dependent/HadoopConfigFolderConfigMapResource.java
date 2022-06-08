@@ -49,13 +49,17 @@ public class HadoopConfigFolderConfigMapResource extends KubernetesDependentReso
     @Inject
     KubernetesClient client;
 
+    public static String getConfigMapName(String name) {
+        return String.format("%s-hadoopfolder", name);
+    }
+
     @Override
     protected ConfigMap desired(HadoopConfigFolder primary, Context<HadoopConfigFolder> context) {
         // 找每个content，并进行汇总
         var namespace = primary.getMetadata().getNamespace();
         final var name = primary.getMetadata().getName();
         final var labels = K8sUtil.getContextLabels(context);
-        var configmap = String.format("%s-hadoopfolder", name);
+        var configmap = getConfigMapName(name);
 
         var configmapBuilder = new ConfigMapBuilder()
                 .withMetadata(K8sUtil.createMetadata(namespace, configmap, labels));
@@ -64,7 +68,7 @@ public class HadoopConfigFolderConfigMapResource extends KubernetesDependentReso
         ConfigMap configMap = configmapBuilder.addToData(datas).build();
         LOGGER.infov("创建/修改 configmap {0}/{1}", namespace, configMap.getMetadata().getName());
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debugv("显示 {0} yaml = \n{1}", Service.class.getName(), YamlUtil.toPrettyYaml(configMap));
+            LOGGER.debugv("显示 {0} yaml = \n{1}", ConfigMap.class.getName(), YamlUtil.toPrettyYaml(configMap));
         }
         return configMap;
     }
@@ -87,9 +91,9 @@ public class HadoopConfigFolderConfigMapResource extends KubernetesDependentReso
                     .withName(resource.getName())
                     .get();
             if (hadoopConfig == null) {
-                throw new ConfigmapException(String.format("找不到对应的 HadoopConfig 资源信息！%s/%s", resource.getNamespace(), resource.getName()));
+                throw new ConfigmapException(String.format("找不到对应的 HadoopConfig 资源信息！%s/%s", defaultNamespace, resource.getName()));
             } else if (hadoopConfig.getStatus() == null || !hadoopConfig.getStatus().isSuccess()) {
-                throw new ConfigmapException(String.format("对应的 HadoopConfig 资源信息未创建！%s/%s", resource.getNamespace(), resource.getName()));
+                throw new ConfigmapException(String.format("对应的 HadoopConfig 资源信息未创建！%s/%s", defaultNamespace, resource.getName()));
             }
             // 找configmap
             var configmap = client.configMaps()

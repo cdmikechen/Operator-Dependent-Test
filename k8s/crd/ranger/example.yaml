@@ -1,0 +1,187 @@
+apiVersion: com.pesco.operator/v1
+kind: Ranger
+metadata:
+  name: example-ranger
+  namespace: project-1
+spec:
+  image: syharbor.sypesco.com:5000/bigdata/ranger
+  version: 2.3.0-mr3
+  hadoopConfigFolder: ranger-config
+  env:
+    - name: TZ
+      value: Asia/Shanghai
+  initService:
+    enable: false
+    service:
+      - name: "hive-mr3-cloud"
+        displayName: ""
+        description: ""
+        isEnabled: true
+        type: "hive"
+        configs:
+          username: "hdfs"
+          password: "abcd123456"
+          jdbc.driverClassName: "org.apache.hive.jdbc.HiveDriver"
+          jdbc.url: "jdbc:hive2://hiveserver2:9852"
+          policy.download.auth.user: "hdfs"
+      - name: "atlas-cloud"
+        displayName: ""
+        description: ""
+        isEnabled: true
+        type: "atlas"
+        configs:
+          username: "admin"
+          password: "admin"
+          atlas.rest.address: "http://bigdata-atlas-service:21000"
+  installProperties: |-
+    #
+    #------------------------- DB CONFIG - BEGIN ----------------------------------
+    PYTHON_COMMAND_INVOKER=python
+    #DB_FLAVOR=MYSQL|POSTGRES
+    DB_FLAVOR=MYSQL
+    RANGER_ADMIN_LOGBACK_CONF_FILE=/opt/mr3-run/ranger/ranger-admin/ews/webapp/WEB-INF/classes/conf/logback.xml
+    SQL_CONNECTOR_JAR=/opt/mr3-run/lib/mysql-connector-java-8.0.28.jar
+
+    # 2. If HIVE_MYSQL_DRIVER in env.sh is empty and the Docker image does not include a MySQL connector,
+    # copy one in the PersistentVolume and set SQL_CONNECTOR_JAR to point to it, e.g.,
+    #   SQL_CONNECTOR_JAR=/opt/mr3-run/ranger/work-dir/lib/mysql-connector-java.jar
+
+    #
+    # DB password for the DB admin user-id
+    # **************************************************************************
+    # ** If the password is left empty or not-defined here,
+    # ** it will try with blank password during installation process
+    # **************************************************************************
+    #
+    db_root_user=root
+    db_root_password=syzhkj123.0
+    db_host=mysql-ranger-mysql-standalone:3306
+
+    #
+    #SSL config
+    #
+    db_ssl_enabled=false
+    db_ssl_required=false
+    db_ssl_verifyServerCertificate=false
+    #db_ssl_auth_type=1-way|2-way, where 1-way represents standard one way ssl authentication and 2-way represents mutual ssl authentication
+    db_ssl_auth_type=2-way
+    javax_net_ssl_keyStore=
+    javax_net_ssl_keyStorePassword=
+    javax_net_ssl_trustStore=
+    javax_net_ssl_trustStorePassword=
+
+    #
+    # DB UserId used for the Ranger schema
+    #
+    db_name=ranger
+    db_user=ranger
+    db_password=ranger
+
+    # change password. Password for below mentioned users can be changed only once using this property.
+    #PLEASE NOTE :: Password should be minimum 8 characters with min one alphabet and one numeric.
+    rangerAdmin_password=syzhkj123.0
+    rangerTagsync_password=syzhkj123.0
+    rangerUsersync_password=syzhkj123.0
+    keyadmin_password=syzhkj123.0
+
+    #Source for Audit Store. Currently solr and elasticsearch are supported.
+    # * audit_store is solr
+    audit_store=solr
+
+    # * audit_solr_url Elasticsearch Host(s). E.g. 127.0.0.1
+    #audit_elasticsearch_urls=
+    #audit_elasticsearch_port=
+    #audit_elasticsearch_protocol=
+    #audit_elasticsearch_user=
+    #audit_elasticsearch_password=
+    #audit_elasticsearch_index=
+    #audit_elasticsearch_bootstrap_enabled=true
+
+    # * audit_solr_url URL to Solr. E.g. http://<solr_host>:6083/solr/ranger_audits
+    audit_solr_urls=http://solr-cluster-svc.project-1.svc.cluster.local:8983/solr/ranger_audits
+    audit_solr_user=admin
+    audit_solr_password=Syzhkj@123.0
+    audit_solr_zookeepers=solr-cluster-zookeeper.project-1.svc.cluster.local:2181
+
+    audit_solr_collection_name=ranger_audits
+    #solr Properties for cloud mode
+    audit_solr_config_name=ranger_audits
+    audit_solr_no_shards=2
+    audit_solr_no_replica=2
+    audit_solr_max_shards_per_node=3
+    audit_solr_acl_user_list_sasl=solr,infra-solr
+    #audit_solr_bootstrap_enabled=true
+
+    #
+    # ------- PolicyManager CONFIG ----------------
+    #
+
+    policymgr_external_url=http://localhost:6080
+    policymgr_http_enabled=true
+    policymgr_https_keystore_file=
+    policymgr_https_keystore_keyalias=ssl-private-key
+    policymgr_https_keystore_password=
+
+    #Add Supported Components list below separated by semi-colon, default value is empty string to support all components
+    #Example :  policymgr_supportedcomponents=hive,hbase,hdfs
+    policymgr_supportedcomponents=all
+
+    #
+    # ------- UNIX User CONFIG ----------------
+    #
+    unix_user=ranger
+    unix_user_pwd=ranger
+    unix_group=ranger
+
+    #
+    # UNIX authentication service for Policy Manager
+    #
+    authentication_method=NONE
+    remoteLoginEnabled=true
+    authServiceHostName=localhost
+    authServicePort=5151
+    ranger_unixauth_keystore=keystore.jks
+    ranger_unixauth_keystore_password=password
+    ranger_unixauth_truststore=cacerts
+    ranger_unixauth_truststore_password=changeit
+
+    #
+    #-------- SSO CONFIG - Start ------------------
+    #
+    sso_enabled=false
+    sso_providerurl=https://127.0.0.1:8443/gateway/knoxsso/api/v1/websso
+    sso_publickey=
+
+    #
+    #-------- SSO CONFIG - END ------------------
+
+    # Custom log directory path
+    # We use a local directory inside the Docker container (/opt/mr3-run/ranger/work-local-dir), rather than a directory
+    # in the PersistentVolume, because of the permission problem:
+    #   'root' inside the Docker container creates $RANGER_ADMIN_LOG_DIR. --> okay
+    #   'root' tries to change the ownership of $RANGER_ADMIN_LOG_DIR (with 'chown -R'). --> may fail
+    RANGER_ADMIN_LOG_DIR=/opt/mr3-run/ranger/work-local-dir/log/ranger-admin
+
+
+    # PID file path
+    RANGER_PID_DIR_PATH=/var/run/ranger
+
+    # #################  DO NOT MODIFY ANY VARIABLES BELOW #########################
+    #
+    # --- These deployment variables are not to be modified unless you understand the full impact of the changes
+    #
+    ################################################################################
+    XAPOLICYMGR_DIR=$PWD
+    app_home=$PWD/ews/webapp
+    TMPFILE=$PWD/.fi_tmp
+    LOGFILE=$PWD/logfile
+    LOGFILES="$LOGFILE"
+
+    JAVA_BIN='java'
+    JAVA_VERSION_REQUIRED='1.8'
+    JAVA_ORACLE='Java(TM) SE Runtime Environment'
+
+    ranger_admin_max_heap_size=1g
+    #retry DB and Java patches after the given time in seconds.
+    PATCH_RETRY_INTERVAL=120
+    STALE_PATCH_ENTRY_HOLD_TIME=10

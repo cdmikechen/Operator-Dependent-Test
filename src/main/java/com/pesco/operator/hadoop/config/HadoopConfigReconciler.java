@@ -1,7 +1,6 @@
 package com.pesco.operator.hadoop.config;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pesco.operator.common.utils.JsonUtil;
 import com.pesco.operator.hadoop.config.crd.HadoopConfigStatus;
 import com.pesco.operator.hadoop.config.dependent.HadoopConfigConfigMapResource;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -36,16 +35,13 @@ public class HadoopConfigReconciler implements Reconciler<HadoopConfig>
 
     private static final Logger LOGGER = Logger.getLogger(HadoopConfigReconciler.class);
 
-    private final static ObjectMapper objectMapper = new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
     @Override
     public void initContext(HadoopConfig hadoopConfig, Context<HadoopConfig> context) {
         final var name = hadoopConfig.getMetadata().getName();
         final var labels = Map.of(APP_LABEL, name,
                 INSTANCE_LABEL, HADOOP_CONFIG_INSTANCE_NAME,
                 VERSION_LABEL, DEFAULT_APPLICATION_VERSION,
-                COMPONMENT_LABEL, OPERATOR_NAME);
+                COMPONENT_LABEL, OPERATOR_NAME);
         context.managedDependentResourceContext().put(LABELS_CONTEXT_KEY, labels);
     }
 
@@ -54,7 +50,7 @@ public class HadoopConfigReconciler implements Reconciler<HadoopConfig>
         final var spec = hadoopConfig.getSpec();
         final var namespace = hadoopConfig.getMetadata().getNamespace();
         final var name = hadoopConfig.getMetadata().getName();
-        LOGGER.infov("注册 HadoopConfig 配置 {0}/{1}/{2}", namespace, name, objectMapper.writeValueAsString(spec));
+        LOGGER.infov("注册 HadoopConfig 配置 {0}/{1}/{2}", namespace, name, JsonUtil.toJson(spec));
 
         final var status = new HadoopConfigStatus();
         final var configMap = context.getSecondaryResource(ConfigMap.class);

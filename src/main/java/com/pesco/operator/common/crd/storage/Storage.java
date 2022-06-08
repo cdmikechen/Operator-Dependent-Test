@@ -17,7 +17,9 @@ public class Storage {
 
     private String storageClassName;
 
-    private Boolean create = true;
+    private String accessModes = "ReadWriteOnce";
+
+    private Boolean expansion = false;
 
     private String volumeClaimSize;
 
@@ -29,14 +31,6 @@ public class Storage {
         this.storageClassName = storageClassName;
     }
 
-    public Boolean getCreate() {
-        return create;
-    }
-
-    public void setCreate(Boolean create) {
-        this.create = create;
-    }
-
     public String getVolumeClaimSize() {
         return volumeClaimSize;
     }
@@ -45,11 +39,28 @@ public class Storage {
         this.volumeClaimSize = volumeClaimSize;
     }
 
+    public String getAccessModes() {
+        return accessModes;
+    }
+
+    public void setAccessModes(String accessModes) {
+        this.accessModes = accessModes;
+    }
+
+    public Boolean getExpansion() {
+        return expansion;
+    }
+
+    public void setExpansion(Boolean expansion) {
+        this.expansion = expansion;
+    }
+
     @Override
     public String toString() {
         return "Storage{" +
                 "storageClassName='" + storageClassName + '\'' +
-                ", create=" + create +
+                ", accessModes='" + accessModes + '\'' +
+                ", expansion=" + expansion +
                 ", volumeClaimSize='" + volumeClaimSize + '\'' +
                 '}';
     }

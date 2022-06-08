@@ -15,25 +15,22 @@ public interface KubeConstants {
     String APP_LABEL = "app.kubernetes.io/name";
     String INSTANCE_LABEL = "app.kubernetes.io/instance";
     String VERSION_LABEL = "app.kubernetes.io/version";
-    String COMPONMENT_LABEL = "app.kubernetes.io/component";
-    String PART_OF_LABEL = "app.kubernetes.io/app.kubernetes.io/part-of";
+    String COMPONENT_LABEL = "app.kubernetes.io/component";
+    String PART_OF_LABEL = "app.kubernetes.io/part-of";
     String MANAGED_BY_LABEL = "app.kubernetes.io/managed-by";
     String CREATED_BY_LABEL = "app.kubernetes.io/created-by";
 
     String LABELS_CONTEXT_KEY = "labels";
-    String CONFIG_MAP_HASH_ANNOTATION = "quarkus-config-hash";
+    String RANGER_CONFIG_HASH_ANNOTATION = "ranger-config-hash";
 
     String OPERATOR_NAME = "bigdata-deployment-operator";
-    String QUARKUS_INSTANCE_NAME = "quarkus";
 
     String DEFAULT_APPLICATION_VERSION = "1.0.0";
 
     /* 资源名称信息 */
     String HADOOP_CONFIG_INSTANCE_NAME = "hadoop-config";
     String HADOOP_CONFIG_FOLDER_INSTANCE_NAME = "hadoop-config-folder";
-
-    String QUARKUS_APPLICATION_PROPERTIES = "application.properties";
-    String QUARKUS_DEFAULT_CLUSTER_ROLE = "quarkus-configmap-role";
+    String RANGER_INSTANCE_NAME = "ranger";
 
     String ClusterIP = "ClusterIP";
 }
