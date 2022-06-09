@@ -2,7 +2,7 @@ package com.pesco.operator.hadoop.config;
 
 import com.pesco.operator.common.utils.JsonUtil;
 import com.pesco.operator.hadoop.config.crd.HadoopConfigStatus;
-import com.pesco.operator.hadoop.config.dependent.HcConfigMapResource;
+import com.pesco.operator.hadoop.config.dependent.HadoopConfigConfigMapResource;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.javaoperatorsdk.operator.api.reconciler.*;
 
@@ -16,18 +16,8 @@ import java.util.Map;
 import static com.pesco.operator.common.KubeConstants.*;
 import static com.pesco.operator.common.KubeConstants.LABELS_CONTEXT_KEY;
 
-/**
- * @Title HadoopConfig控制处理服务
- * @Company 尚源智慧科技有限公司
- * @Author 陈翔
- * @Package com.pesco.operator.hadoop
- * @Description
- * @Date 2022/6/7 10:58 上午
- * @Version V1.0
- */
-
 @ControllerConfiguration(dependents = {
-        @Dependent(type = HcConfigMapResource.class)
+        @Dependent(type = HadoopConfigConfigMapResource.class)
 })
 public class HadoopConfigReconciler implements Reconciler<HadoopConfig>
         , ContextInitializer<HadoopConfig>

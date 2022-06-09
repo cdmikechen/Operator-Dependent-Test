@@ -8,15 +8,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.fabric8.kubernetes.client.utils.Serialization;
 
-/**
- * @Title yaml处理工具类
- * @Company 尚源智慧科技有限公司
- * @Author 陈翔
- * @Package com.pesco.operator.common.util
- * @Description
- * @Date 2022/4/29 10:54 上午
- * @Version V1.0
- */
 public class YamlUtil {
 
     public static String toPrettyYaml(Object pojoObject) {

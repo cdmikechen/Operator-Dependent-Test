@@ -31,25 +31,15 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.StringWriter;
 
-/**
- * @Title HadoopConfig对应的Configmap资源
- * @Company 尚源智慧科技有限公司
- * @Author 陈翔
- * @Package com.pesco.operator.hadoop.config.dependent
- * @Description
- * @Date 2022/6/7 11:37 上午
- * @Version V1.0
- */
-
 @ApplicationScoped
-public class HcConfigMapResource extends KubernetesDependentResource<ConfigMap, HadoopConfig> implements
+public class HadoopConfigConfigMapResource extends KubernetesDependentResource<ConfigMap, HadoopConfig> implements
         Creator<ConfigMap, HadoopConfig>,
         Updater<ConfigMap, HadoopConfig>,
         Matcher<ConfigMap, HadoopConfig> {
 
-    private static final Logger LOGGER = Logger.getLogger(HcConfigMapResource.class);
+    private static final Logger LOGGER = Logger.getLogger(HadoopConfigConfigMapResource.class);
 
-    public HcConfigMapResource() {
+    public HadoopConfigConfigMapResource() {
         super(ConfigMap.class);
     }
 
