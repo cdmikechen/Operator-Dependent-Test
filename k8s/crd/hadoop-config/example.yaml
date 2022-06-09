@@ -15,7 +15,7 @@ spec:
       <value>1</value>
      </property>
     </configuration>
-  type: xml
+  type: hadoop_xml
   fileName: hdfs-site.xml
   overwrites:
     - name: dfs.replication
@@ -73,5 +73,5 @@ spec:
       </property>
 
     </configuration>
-  type: xml
+  type: hadoop_xml
   fileName: core-site.xml

@@ -19,34 +19,64 @@ spec:
           properties:
             spec:
               properties:
+                replicas:
+                  type: integer
+                  description: 副本数量
+                  default: 1
+                image:
+                  type: string
+                  description: 镜像
+                version:
+                  type: string
+                  description: 版本信息
+                imagePullPolicy:
+                  enum:
+                    - Always
+                    - IfNotPresent
+                    - Never
+                  type: string
+                  description: 镜像拉取策略
+                imagePullSecrets:
+                  type: string
+                  description: 镜像拉取秘钥
+                serviceAccount:
+                  type: string
+                  description: 服务账户
                 hadoopConfigFolder:
                   type: string
+                  description: hadoopconfig文件夹资源名称
                 initService:
                   properties:
                     enable:
                       type: boolean
+                      description: 是否开启
                     service:
                       items:
                         properties:
+                          name:
+                            type: string
+                            description: 服务名称
+                          type:
+                            type: string
+                            description: 服务类型，例如 hive atlas 等等
                           displayName:
                             type: string
+                            description: 显示名称
                           configs:
                             additionalProperties:
                               type: string
                             type: object
-                          name:
-                            type: string
-                          type:
-                            type: string
+                            description: 配置的参数
                           description:
                             type: string
+                            description: 描述
                           isEnabled:
                             type: boolean
+                            description: 是否开启
                         type: object
                       type: array
                   type: object
-                imagePullSecrets:
-                  type: string
+                  description: 初始化服务
                 hostAliases:
                   items:
                     properties:
@@ -58,8 +88,6 @@ spec:
                         type: string
                     type: object
                   type: array
-                image:
-                  type: string
                 env:
                   items:
                     properties:
@@ -69,25 +97,19 @@ spec:
                         type: string
                     type: object
                   type: array
-                imagePullPolicy:
-                  enum:
-                    - Always
-                    - IfNotPresent
-                    - Never
-                  type: string
-                serviceAccount:
-                  type: string
+                  description: 环境变量
                 storage:
                   properties:
                     storageClassName:
                       type: string
                     volumeClaimSize:
                       type: string
-                    create:
+                    expansion:
                       type: boolean
+                    accessModes:
+                      type: string
                   type: object
-                version:
-                  type: string
+                  description: 存储信息
                 resources:
                   properties:
                     limits:
@@ -105,10 +127,10 @@ spec:
                           type: string
                       type: object
                   type: object
+                  description: 资源信息
                 installProperties:
                   type: string
-                replicas:
-                  type: integer
+                  description: 初始化配置信息
                 overwriteConfigs:
                   items:
                     properties:
@@ -118,26 +140,36 @@ spec:
                         type: string
                     type: object
                   type: array
+                  description: 覆盖变量
               type: object
+              required:
+                - hadoopConfigFolder
+                - installProperties
             status:
               properties:
-                deploymentName:
-                  type: string
-                errorMsg:
-                  type: string
-                configMapName:
-                  type: string
                 activeReplicas:
                   type: integer
+                  description: 正在运行的实例个数
+                deploymentName:
+                  type: string
+                  description: 部署名称
+                configMapName:
+                  type: string
+                  description: ranger-admin-site.xml 的 configmap
                 serviceName:
                   type: string
+                  description: 服务名称
+                errorMsg:
+                  type: string
+                  description: 错误信息
                 stackTrace:
                   items:
                     type: string
                   type: array
+                  description: 错误堆栈
               type: object
           type: object
       served: true
       storage: true
       subresources:
-        status: {}
+        status: { }

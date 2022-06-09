@@ -25,7 +25,7 @@ public class TestXml {
         HadoopConfigSpec spec = new HadoopConfigSpec();
         spec.setContent(content);
         spec.setFileName("hdfs-site.xml");
-        spec.setType(ConfigType.xml);
+        spec.setType(ConfigType.hadoop_xml);
         spec.setOverwrites(List.of(new EnvConfig("dfs.replication", "2"), new EnvConfig("xxx.ttt", "xxxx")));
 
         String realContent = HadoopConfigConfigMapResource.getContent(spec);
