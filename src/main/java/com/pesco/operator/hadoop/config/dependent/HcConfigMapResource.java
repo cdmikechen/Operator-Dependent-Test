@@ -42,14 +42,14 @@ import java.io.StringWriter;
  */
 
 @ApplicationScoped
-public class HadoopConfigConfigMapResource extends KubernetesDependentResource<ConfigMap, HadoopConfig> implements
+public class HcConfigMapResource extends KubernetesDependentResource<ConfigMap, HadoopConfig> implements
         Creator<ConfigMap, HadoopConfig>,
         Updater<ConfigMap, HadoopConfig>,
         Matcher<ConfigMap, HadoopConfig> {
 
-    private static final Logger LOGGER = Logger.getLogger(HadoopConfigConfigMapResource.class);
+    private static final Logger LOGGER = Logger.getLogger(HcConfigMapResource.class);
 
-    public HadoopConfigConfigMapResource() {
+    public HcConfigMapResource() {
         super(ConfigMap.class);
     }
 
@@ -62,7 +62,6 @@ public class HadoopConfigConfigMapResource extends KubernetesDependentResource<C
 
         var configmapBuilder = new ConfigMapBuilder()
                 .withMetadata(K8sUtil.createMetadata(namespace, K8sUtil.hadoopConfigmap(name), labels));
-        // 构建pipeline的mqtt和kafka的定义
         String content = getContent(spec);
 
         ConfigMap configMap = configmapBuilder.addToData(spec.getFileName(), content).build();

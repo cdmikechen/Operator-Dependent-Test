@@ -3,7 +3,7 @@ package com.pesco.operator.hadoop;
 import com.pesco.operator.common.crd.EnvConfig;
 import com.pesco.operator.common.type.ConfigType;
 import com.pesco.operator.hadoop.config.crd.HadoopConfigSpec;
-import com.pesco.operator.hadoop.config.dependent.HadoopConfigConfigMapResource;
+import com.pesco.operator.hadoop.config.dependent.HcConfigMapResource;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -28,7 +28,7 @@ public class TestXml {
         spec.setType(ConfigType.hadoop_xml);
         spec.setOverwrites(List.of(new EnvConfig("dfs.replication", "2"), new EnvConfig("xxx.ttt", "xxxx")));
 
-        String realContent = HadoopConfigConfigMapResource.getContent(spec);
+        String realContent = HcConfigMapResource.getContent(spec);
         System.out.println(realContent);
     }
 

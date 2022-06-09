@@ -38,7 +38,10 @@
 <!--      <artifactId>quarkus-operator-sdk</artifactId>-->
 <!--      <version>4.0.0.RC</version>-->
 <!--    </dependency>-->
-
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-arc</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
@@ -48,10 +51,10 @@
       <artifactId>quarkus-container-image-jib</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-core-deployment</artifactId>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>io.quarkus</groupId>-->
+<!--      <artifactId>quarkus-core-deployment</artifactId>-->
+<!--    </dependency>-->
 
 <!--    <dependency>-->
 <!--      <groupId>io.quarkus</groupId>-->
@@ -107,19 +110,19 @@
         </executions>
       </plugin>
       <!-- 处理 processor 的插件 -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <annotationProcessorPaths>
-            <path>
-              <groupId>io.quarkus</groupId>
-              <artifactId>quarkus-extension-processor</artifactId>
-              <version>${quarkus.platform.version}</version>
-            </path>
-          </annotationProcessorPaths>
-        </configuration>
-      </plugin>
+<!--      <plugin>-->
+<!--        <groupId>org.apache.maven.plugins</groupId>-->
+<!--        <artifactId>maven-compiler-plugin</artifactId>-->
+<!--        <configuration>-->
+<!--          <annotationProcessorPaths>-->
+<!--            <path>-->
+<!--              <groupId>io.quarkus</groupId>-->
+<!--              <artifactId>quarkus-extension-processor</artifactId>-->
+<!--              <version>${quarkus.platform.version}</version>-->
+<!--            </path>-->
+<!--          </annotationProcessorPaths>-->
+<!--        </configuration>-->
+<!--      </plugin>-->
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${compiler-plugin.version}</version>
