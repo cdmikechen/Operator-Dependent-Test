@@ -21,7 +21,8 @@ public interface KubeConstants {
     String CREATED_BY_LABEL = "app.kubernetes.io/created-by";
 
     String LABELS_CONTEXT_KEY = "labels";
-    String RANGER_CONFIG_HASH_ANNOTATION = "ranger-config-hash";
+    String RANGER_CONFIG_HASH_ANNOTATION = "ranger-site-config-hash";
+    String RANGER_INITSERVICE_HASH_ANNOTATION = "initservice-config-hash";
 
     String OPERATOR_NAME = "bigdata-deployment-operator";
 

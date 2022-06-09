@@ -26,9 +26,11 @@ spec:
               type:
                 enum:
                 - xml
+                - hadoop_xml
                 - properties
                 - env
                 - yaml
+                - conf
                 type: string
                 description: 配置文件的类型
               content:

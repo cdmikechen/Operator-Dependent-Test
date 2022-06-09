@@ -1,15 +1,14 @@
 package com.pesco.operator.ranger;
 
+import com.pesco.operator.common.exception.ConfigmapException;
 import com.pesco.operator.common.utils.JsonUtil;
 import com.pesco.operator.common.utils.K8sUtil;
 import com.pesco.operator.common.utils.YamlUtil;
+import com.pesco.operator.hadoop.folder.dependent.HadoopConfigFolderConfigMapResource;
 import com.pesco.operator.ranger.crd.Ranger;
 import com.pesco.operator.ranger.crd.RangerStatus;
 import com.pesco.operator.ranger.crd.service.Service;
-import com.pesco.operator.ranger.dependent.InstallPropertiesResource;
-import com.pesco.operator.ranger.dependent.RangerAdminSiteResource;
-import com.pesco.operator.ranger.dependent.RangerDeploymentResource;
-import com.pesco.operator.ranger.dependent.RangerPvcResource;
+import com.pesco.operator.ranger.dependent.*;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -40,6 +39,7 @@ import static com.pesco.operator.common.KubeConstants.*;
         @Dependent(type = RangerAdminSiteResource.class),
         @Dependent(type = RangerPvcResource.class),
         @Dependent(type = RangerDeploymentResource.class),
+        @Dependent(type = RangerServiceResource.class),
 })
 public class RangerReconciler implements Reconciler<Ranger>
         , ContextInitializer<Ranger>
@@ -88,6 +88,10 @@ public class RangerReconciler implements Reconciler<Ranger>
         final var rangerAdminSite = context.getSecondaryResource(ConfigMap.class)
                 .map(configmap -> configmap.getMetadata().getName()).orElse(null);
         status.setConfigMapName(rangerAdminSite);
+        // service 名称
+        final var svcName = context.getSecondaryResource(io.fabric8.kubernetes.api.model.Service.class)
+                .map(svc -> svc.getMetadata().getName()).orElse(null);
+        status.setServiceName(svcName);
         // 返回最终状态
         ranger.setStatus(status);
         return UpdateControl.updateStatus(ranger);
@@ -97,11 +101,19 @@ public class RangerReconciler implements Reconciler<Ranger>
         return String.format("%s-ranger-initservices", name);
     }
 
+    public static String getServiceJson(List<Service> services) {
+        try {
+            return services == null || services.isEmpty() ? "[]" : JsonUtil.toJson(services);
+        } catch (IOException e) {
+            throw new ConfigmapException("解析初始化service信息失败！" + services);
+        }
+    }
+
     /**
      * 创建一个initservice的json配置
      */
-    private void createInitService(String namespace, String name, Map<String, String> labels, List<Service> services) throws IOException {
-        var json = services == null || services.isEmpty() ? "" : JsonUtil.toJson(services);
+    private void createInitService(String namespace, String name, Map<String, String> labels, List<Service> services) {
+        var json = getServiceJson(services);
         var configMap = new ConfigMapBuilder()
                 .withMetadata(K8sUtil.createMetadata(namespace, getInitServiceName(name), labels))
                 .addToData(INIT_SERVICE_FILE, json)
@@ -145,7 +157,7 @@ public class RangerReconciler implements Reconciler<Ranger>
         final var namespace = ranger.getMetadata().getNamespace();
         final var name = ranger.getMetadata().getName();
         LOGGER.infov("删除任务 {0}/{1}", namespace, name);
-
+        // 删除initservice
         if (spec.getInitService() != null && spec.getInitService().getEnable()) {
             deleteInitService(namespace, name);
         }

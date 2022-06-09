@@ -56,7 +56,7 @@ public class RangerAdminSiteResource extends KubernetesDependentResource<ConfigM
 
         // 生成configmap
         var configmapBuilder = new ConfigMapBuilder()
-                .withMetadata(K8sUtil.createMetadata(namespace,getRangerAdminSiteName(name), labels));
+                .withMetadata(K8sUtil.createMetadata(namespace, getRangerAdminSiteName(name), labels));
         ConfigMap configMap = configmapBuilder.addToData(RANGER_ADMIN_SITE_FILE, output).build();
 
         LOGGER.infov("创建/修改 ranger-admin-site.xml {0}/{1}", namespace, configMap.getMetadata().getName());
@@ -128,6 +128,14 @@ public class RangerAdminSiteResource extends KubernetesDependentResource<ConfigM
             } else {
                 throw new ConfigmapException("不支持的数据库类型！" + dbFlavor);
             }
+
+            // 默认的一些配置信息
+            var defaultXml = K8sUtil.parsePropertiesFile("/ranger/default-xml.properties");
+            defaultXml.forEach((k, v) -> {
+                if (!xml.containsKey(k)) {
+                    xml.put(String.valueOf(k), String.valueOf(v));
+                }
+            });
 
             // 进行覆盖
             var spec = ranger.getSpec();

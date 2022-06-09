@@ -2,11 +2,14 @@ package com.pesco.operator.ranger.dependent;
 
 import com.pesco.operator.common.crd.EnvConfig;
 import com.pesco.operator.common.exception.ConfigmapException;
+import com.pesco.operator.common.exception.DeploymentException;
+import com.pesco.operator.common.utils.CollectionUtils;
 import com.pesco.operator.common.utils.K8sUtil;
 import com.pesco.operator.common.utils.YamlUtil;
 import com.pesco.operator.hadoop.folder.dependent.HadoopConfigFolderConfigMapResource;
 import com.pesco.operator.ranger.RangerReconciler;
 import com.pesco.operator.ranger.crd.Ranger;
+import com.pesco.operator.ranger.crd.RangerSpec;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
@@ -21,8 +24,9 @@ import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+
+import static com.pesco.operator.common.KubeConstants.*;
 
 /**
  * @Title ranger deployment 服务
@@ -55,7 +59,20 @@ public class RangerDeploymentResource extends KubernetesDependentResource<Deploy
         final var namespace = ranger.getMetadata().getNamespace();
         final var name = ranger.getMetadata().getName();
         final var labels = K8sUtil.getContextLabels(context);
+        var deployment = getDeployment(spec, namespace, name, labels, context);
 
+        // 返回
+        LOGGER.infov("创建/修改 ranger-admin-site.xml {0}/{1}", namespace, deployment.getMetadata().getName());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debugv("显示 {0} yaml = \n{1}", Deployment.class.getName(), YamlUtil.toPrettyYaml(deployment));
+        }
+        return deployment;
+    }
+
+    /**
+     * 创建新的deployment
+     */
+    private Deployment getDeployment(RangerSpec spec, String namespace, String name, Map<String, String> labels, Context<Ranger> context) {
         // hostAliases
         List<HostAlias> hostAliases = new ArrayList<>();
         if (spec.getHostAliases() != null && !spec.getHostAliases().isEmpty()) {
@@ -64,9 +81,11 @@ public class RangerDeploymentResource extends KubernetesDependentResource<Deploy
             });
         }
 
-        // 查找configmap，并写入 spec.template.metadata.annotations.quarkus-config-hash
+        // 查找configmap，并写入 spec.template.metadata.annotations.xxx-config-hash
         // 这样做的目的是为了能让每次更新配置后自动重启pod，进而保证pod的时效性
-        //var configmapProps = K8sUtil.getContextConfigmap(context);
+        var hashMap = getConfigHashMap(spec, context);
+
+        // 初始化container
         var containerBuilder = new DeploymentBuilder()
                 .withMetadata(K8sUtil.createMetadata(namespace, String.format("%s-ranger-admin", name), labels))
                 .withNewSpec()
@@ -76,7 +95,7 @@ public class RangerDeploymentResource extends KubernetesDependentResource<Deploy
                 .withNewTemplate()
                 .withNewMetadata()
                 .withLabels(labels)
-                //.withAnnotations(Map.of(CONFIG_MAP_HASH_ANNOTATION, K8sUtil.getConfigmapMd5(configmapProps)))
+                .withAnnotations(hashMap)
                 .endMetadata()
                 .withNewSpec()
                 // serviceAccountName
@@ -118,8 +137,8 @@ public class RangerDeploymentResource extends KubernetesDependentResource<Deploy
         // 端口配置为从 ranger.service.http.port 和 ranger.service.https.port 采集的
         // 这个变量从 install.properties 里面获取不到，所以需要从 overwrite 里面找配置，找不到则按照默认启动
         var overwrite = spec.getOverwriteConfigs();
-        var httpPort = RangerServiceResource.DEFAULT_HTTP_PORT;
-        var httpsPort = RangerServiceResource.DEFAULT_HTTPS_PORT;
+        int httpPort = RangerServiceResource.DEFAULT_HTTP_PORT;
+        int httpsPort = RangerServiceResource.DEFAULT_HTTPS_PORT;
         if (overwrite != null && !overwrite.isEmpty()) {
             for (EnvConfig ow : overwrite) {
                 if ("ranger.service.http.port".equals(ow.getName())) {
@@ -170,13 +189,25 @@ public class RangerDeploymentResource extends KubernetesDependentResource<Deploy
         // 挂载deployment
         deployment.getSpec().getTemplate().getSpec().setVolumes(volumes);
         deployment.getSpec().getTemplate().getSpec().getContainers().get(0).setVolumeMounts(volumeMounts);
-
-        // 返回
-        LOGGER.infov("创建/修改 ranger-admin-site.xml {0}/{1}", namespace, deployment.getMetadata().getName());
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debugv("显示 {0} yaml = \n{1}", Deployment.class.getName(), YamlUtil.toPrettyYaml(deployment));
-        }
         return deployment;
+    }
+
+    /**
+     * 获取配置hash对应的 annotations
+     *
+     * @return {"ranger-site-config-hash": "", "initservice-config-hash": ""}
+     */
+    private Map<String, String> getConfigHashMap(RangerSpec spec, Context<Ranger> context) {
+        var hashMap = new LinkedHashMap<String, String>();
+        var rangerConfigXml = context.getSecondaryResource(ConfigMap.class)
+                .map(configmap -> configmap.getData().get(RangerReconciler.RANGER_ADMIN_SITE_FILE)).orElse("");
+        hashMap.put(RANGER_CONFIG_HASH_ANNOTATION, K8sUtil.getConfigmapMd5(rangerConfigXml));
+        // initservice的内容
+        if (spec.getInitService() != null && spec.getInitService().getEnable()) {
+            var initServiceJson = RangerReconciler.getServiceJson(spec.getInitService().getService());
+            hashMap.put(RANGER_INITSERVICE_HASH_ANNOTATION, K8sUtil.getConfigmapMd5(initServiceJson));
+        }
+        return hashMap;
     }
 
     /**
@@ -311,6 +342,116 @@ public class RangerDeploymentResource extends KubernetesDependentResource<Deploy
 
     @Override
     public Result<Deployment> match(Deployment actual, Ranger ranger, Context<Ranger> context) {
-        return Result.nonComputed(false);
+        // 比较deployment的差异
+        final var labels = K8sUtil.getContextLabels(context);
+        final var spec = ranger.getSpec();
+        var deployment = getDeployment(spec, ranger.getMetadata().getNamespace(), ranger.getMetadata().getName(), labels, context);
+
+        // sa名称
+        if (!Objects.equals(spec.getServiceAccount(), actual.getSpec().getTemplate().getSpec().getServiceAccount()))
+            return Result.nonComputed(false);
+        // 副本数量
+        if (!actual.getSpec().getReplicas().equals(spec.getReplicas()))
+            return Result.nonComputed(false);
+        // 标签信息
+        if (!K8sUtil.checkLabels(actual.getMetadata().getLabels(), labels) || !K8sUtil.checkLabels(actual.getSpec().getSelector().getMatchLabels(), labels))
+            return Result.nonComputed(false);
+        // configmap差异
+        var hashMap = deployment.getSpec().getTemplate().getMetadata().getAnnotations();
+        var annotations = actual.getSpec().getTemplate().getMetadata().getAnnotations();
+        if (annotations == null || annotations.isEmpty() || !annotations.equals(hashMap))
+            return Result.nonComputed(false);
+        // hostAliases
+        var newHas = CollectionUtils.filterEmptyCollections(deployment.getSpec().getTemplate().getSpec().getHostAliases());
+        var oldHas = CollectionUtils.filterEmptyCollections(actual.getSpec().getTemplate().getSpec().getHostAliases());
+        if (newHas.size() != oldHas.size()) {
+            return Result.nonComputed(false);
+        } else {
+            for (int i = 0, size = newHas.size(); i < size; i++) {
+                var newHa = newHas.get(i);
+                var oldHa = oldHas.get(i);
+                if (!newHa.getIp().equals(oldHa.getIp())) {
+                    return Result.nonComputed(false);
+                } else if (!CollectionUtils.isEqualCollection(newHa.getHostnames(), oldHa.getHostnames())) {
+                    return Result.nonComputed(false);
+                }
+            }
+        }
+
+        // container内部的差异
+        final var container = actual.getSpec().getTemplate().getSpec().getContainers()
+                .stream()
+                .findFirst();
+        final var originContainer = deployment.getSpec().getTemplate().getSpec().getContainers()
+                .stream()
+                .findFirst().orElseThrow(() -> new DeploymentException("找不到生成的deployment资源信息！"));
+        return Result.nonComputed(
+                container.map(c -> {
+                    // 镜像名称
+                    if (!StringUtils.equals(getImage(spec.getImage(), spec.getVersion()), c.getImage()))
+                        return false;
+                    // 镜像策略
+                    if (!StringUtils.equals(spec.getImagePullPolicy().toString(), c.getImagePullPolicy()))
+                        return false;
+                    // 环境变量
+                    if (!convertEnvVar(originContainer.getEnv()).equals(convertEnvVar(c.getEnv())))
+                        return false;
+                    // command
+                    if (!CollectionUtils.isEqualCollection(originContainer.getCommand(), c.getCommand()))
+                        return false;
+                    // 两个端口信息，6181，6182
+                    if (c.getPorts() == null || c.getPorts().size() != 2) {
+                        return false;
+                    } else {
+                        var newPort = originContainer.getPorts();
+                        var oldPort = c.getPorts();
+                        if (!Objects.equals(oldPort.get(0).getContainerPort(), newPort.get(0).getContainerPort()))
+                            return false;
+                        if (!Objects.equals(oldPort.get(1).getContainerPort(), newPort.get(1).getContainerPort()))
+                            return false;
+                    }
+                    // resources
+                    if (originContainer.getResources() == null) {
+                        if (c.getResources() != null && (c.getResources().getRequests() != null || c.getResources().getLimits() != null)) {
+                            return false;
+                        }
+                    } else {
+                        // limits
+                        var oldLimits = CollectionUtils.filterEmptyMap(c.getResources().getLimits());
+                        var newLimits = CollectionUtils.filterEmptyMap(originContainer.getResources().getLimits());
+                        if (!CollectionUtils.isEqualMap(oldLimits, newLimits)) return false;
+                        // requests
+                        var oldRequests = CollectionUtils.filterEmptyMap(c.getResources().getRequests());
+                        var newRequests = CollectionUtils.filterEmptyMap(originContainer.getResources().getRequests());
+                        if (!CollectionUtils.isEqualMap(oldRequests, newRequests)) return false;
+                    }
+
+                    // 挂载信息，如果挂载有关联问题，会出错，所以我们这边暂时只校验 volumeMounts
+                    var newVms = originContainer.getVolumeMounts();
+                    var oldVms = c.getVolumeMounts();
+                    if (newVms.isEmpty() || newVms.size() != oldVms.size()) {
+                        return false;
+                    } else {
+                        for (int i = 0, size = newVms.size(); i < size; i++) {
+                            var newVm = newVms.get(i);
+                            var oldVm = oldVms.get(i);
+                            if (!newVm.getName().equals(oldVm.getName())) {
+                                return false;
+                            } else if (!newVm.getMountPath().equals(oldVm.getMountPath())) {
+                                return false;
+                            } else if (!Objects.equals(newVm.getSubPath(), oldVm.getSubPath())) {
+                                return false;
+                            }
+                        }
+                    }
+                    return true;
+                }).orElse(false)
+        );
+    }
+
+    private Map<String, String> convertEnvVar(List<EnvVar> envVars) {
+        final var result = new HashMap<String, String>(envVars.size());
+        envVars.forEach(e -> result.put(e.getName(), e.getValue()));
+        return result;
     }
 }

@@ -84,7 +84,7 @@ public class HadoopConfigConfigMapResource extends KubernetesDependentResource<C
         if (overwrites != null && !overwrites.isEmpty()) {
             var type = spec.getType();
             switch (type) {
-                case xml:
+                case hadoop_xml:
                     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                     try (InputStream is = new ByteArrayInputStream(content.replaceAll("\n|\r", "").getBytes())) {
                         DocumentBuilder db = dbf.newDocumentBuilder();
